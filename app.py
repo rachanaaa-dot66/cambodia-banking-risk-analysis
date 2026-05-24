@@ -179,26 +179,42 @@ def load_sector_data():
 
 @st.cache_data
 def load_market_data():
-    """
-    Simulated market data for display.
-    In production this would pull from your market_risk_analysis.py outputs.
-    We use representative values here for the app to work standalone.
-    """
     import yfinance as yf
     try:
         tickers = {"VNM": "Vietnam ETF", "EEM": "Emerging Markets",
                    "XLF": "US Financials", "TLT": "US Treasury"}
+
         raw = yf.download(
             list(tickers.keys()),
             start="2020-01-01", end="2024-12-31",
             progress=False, auto_adjust=True
         )
-        prices = raw["Close"].copy()
-        prices.columns = [tickers[c] for c in prices.columns]
+
+        # Handle MultiIndex columns from newer yfinance versions
+        if isinstance(raw.columns, pd.MultiIndex):
+            prices = raw["Close"].copy()
+        else:
+            prices = raw.copy()
+
+        # Rename ticker codes to readable names
+        rename_map = {}
+        for col in prices.columns:
+            ticker = str(col).strip()
+            if ticker in tickers:
+                rename_map[col] = tickers[ticker]
+        prices = prices.rename(columns=rename_map)
+
+        # Calculate cumulative returns
         returns = np.log(prices / prices.shift(1)).dropna()
         cum_ret = (1 + returns).cumprod()
-        return cum_ret.reset_index()
-    except Exception:
+
+        # Reset index and normalize date column to "Date"
+        df = cum_ret.reset_index()
+        df = df.rename(columns={df.columns[0]: "Date"})
+        return df
+
+    except Exception as e:
+        st.error(f"Market data error: {e}")
         return None
 
 
