@@ -217,7 +217,8 @@ def render_sidebar():
             ["📊 Credit Risk",
              "🌏 Regional Context",
              "📈 Market Risk",
-             "📋 Risk Scorecard"],
+             "📋 Risk Scorecard",
+             "📜 Regulatory Framework"],
             label_visibility="collapsed"
         )
 
@@ -941,6 +942,28 @@ def page_scorecard():
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# PAGE 5 — REGULATORY FRAMEWORK
+# ═══════════════════════════════════════════════════════════════════════════
+def page_regulatory():
+    st.title("📜 Regulatory Framework")
+    st.markdown(
+        "Basel III international standards and NBC local regulations "
+        "governing Cambodia's banking sector — and how current risk "
+        "findings relate to regulatory requirements and gaps."
+    )
+
+    try:
+        with open("regulatory_summary.md", "r", encoding="utf-8") as f:
+            content = f.read()
+        st.markdown(content)
+    except FileNotFoundError:
+        st.warning(
+            "Regulatory summary file not found. "
+            "Please ensure regulatory_summary.md is in the project root."
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # MAIN — Route to correct page
 # ═══════════════════════════════════════════════════════════════════════════
 def main():
@@ -954,6 +977,8 @@ def main():
         page_market_risk()
     elif page == "📋 Risk Scorecard":
         page_scorecard()
+    elif page == "📜 Regulatory Framework":
+        page_regulatory()
 
 
 if __name__ == "__main__":
